@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Освітній простір України</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #1a1a2e;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Шапка */
+        .header {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.8;
+            font-size: 16px;
+        }
+        
+        /* Поиск и фильтры */
+        .search-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        
+        .search-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .search-row input,
+        .search-row select {
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .search-row button {
+            padding: 10px 30px;
+            background: #16213e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .search-row button:hover {
+            background: #1a1a2e;
+        }
+        
+        /* Статистика */
+        .stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .stats span {
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+        }
+        
+        /* Карточки заведений */
+        .institutions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        
+        .institution-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: 1px solid #e8ecf1;
+        }
+        
+        .institution-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .institution-card h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #16213e;
+        }
+        
+        .institution-card .type {
+            display: inline-block;
+            background: #eef2f7;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .institution-card .location {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .institution-card .rating {
+            color: #f5a623;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .institution-card .website {
+            color: #4a90d9;
+            font-size: 13px;
+            word-break: break-all;
+        }
+        
+        /* Модальное окно */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 16px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            background: none;
+            border: none;
+        }
+        
+        .modal-close:hover {
+            color: #333;
+        }
+        
+        .modal h2 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #16213e;
+        }
+        
+        .modal .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .modal .info-grid .label {
+            color: #888;
+            font-size: 13px;
+        }
+        
+        .modal .info-grid .value {
+            font-weight: 500;
+        }
+        
+        .modal .specialties-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        
+        .modal .specialties-table th {
+            background: #f5f7fa;
+            padding: 10px;
+            text-align: left;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .modal .specialties-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal .specialties-table tr:hover td {
+            background: #f8f9fc;
+        }
+        
+        /* Загрузка */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #eee;
+            border-top-color: #16213e;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Пагинация */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        .pagination button {
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .pagination button:hover {
+            background: #f5f7fa;
+        }
+        
+        .pagination button.active {
+            background: #16213e;
+            color: white;
+            border-color: #16213e;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 600px) {
+            .search-row {
+                flex-direction: column;
+            }
+            .search-row input,
+            .search-row select {
+                width: 100%;
+            }
+            .modal .info-grid {
+                grid-template-columns: 1fr;
+            }
+            .institutions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка -->
+        <div class="header">
+            <h1>🏛️ Освітній простір України</h1>
+            <p>Пошук навчальних закладів України</p>
+        </div>
+        
+        <!-- Поиск и фильтры -->
+        <div class="search-section">
+            <div class="search-row">
+                <input type="text" id="searchInput" placeholder="🔍 Назва, місто, регіон..." oninput="search()">
+                <select id="cityFilter" onchange="search()">
+                    <option value="">Всі міста</option>
+                </select>
+                <select id="regionFilter" onchange="search()">
+                    <option value="">Всі регіони</option>
+                </select>
+                <select id="typeFilter" onchange="search()">
+                    <option value="">Всі типи</option>
+                </select>
+                <button onclick="search()">Пошук</button>
+            </div>
+        </div>
+        
+        <!-- Статистика -->
+        <div class="stats" id="stats">
+            <span id="totalCount">Завантаження...</span>
+        </div>
+        
+        <!-- Результаты -->
+        <div id="results" class="institutions-grid"></div>
+        
+        <!-- Пагинация -->
+        <div class="pagination" id="pagination"></div>
+    </div>
+    
+    <!-- Модальное окно -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal()">✕</button>
+            <div id="modalContent">
+                <div class="loading">Завантаження...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let currentPage = 0;
+        const limit = 20;
+        let totalItems = 0;
+        
+        // Загрузка фильтров
+        async function loadFilters() {
+            try {
+                const res = await fetch(`${API_BASE}/api/filters`);
+                const data = await res.json();
+                
+                const citySelect = document.getElementById('cityFilter');
+                data.cities.forEach(city => {
+                    const opt = document.createElement('option');
+                    opt.value = city;
+                    opt.textContent = city;
+                    citySelect.appendChild(opt);
+                });
+                
+                const regionSelect = document.getElementById('regionFilter');
+                data.regions.forEach(region => {
+                    const opt = document.createElement('option');
+                    opt.value = region;
+                    opt.textContent = region;
+                    regionSelect.appendChild(opt);
+                });
+                
+                const typeSelect = document.getElementById('typeFilter');
+                data.types.forEach(type => {
+                    const opt = document.createElement('option');
+                    opt.value = type;
+                    opt.textContent = type;
+                    typeSelect.appendChild(opt);
+                });
+            } catch (e) {
+                console.error('Ошибка загрузки фильтров:', e);
+            }
+        }
+        
+        // Поиск
+        async function search(page = 0) {
+            currentPage = page;
+            const search = document.getElementById('searchInput').value;
+            const city = document.getElementById('cityFilter').value;
+            const region = document.getElementById('regionFilter').value;
+            const type = document.getElementById('typeFilter').value;
+            
+            const params = new URLSearchParams({
+                limit: limit,
+                offset: page * limit,
+                search: search,
+                city: city,
+                region: region,
+                type: type
+            });
+            
+            try {
+                document.getElementById('results').innerHTML = '<div class="loading">Завантаження...</div>';
+                
+                const res = await fetch(`${API_BASE}/api/institutions?${params}`);
+                const data = await res.json();
+                
+                totalItems = data.total;
+                renderResults(data.items);
+                renderPagination();
+                
+                document.getElementById('totalCount').textContent = 
+                    `Знайдено ${data.total} закладів`;
+            } catch (e) {
+                document.getElementById('results').innerHTML = 
+                    `<div class="loading">❌ Помилка завантаження: ${e.message}</div>`;
+                console.error('Search error:', e);
+            }
+        }
+        
+        // Рендер результатов
+        function renderResults(items) {
+            const container = document.getElementById('results');
+            
+            if (!items || items.length === 0) {
+                container.innerHTML = '<div class="loading">😕 Закладів не знайдено</div>';
+                return;
+            }
+            
+            container.innerHTML = items.map(item => `
+                <div class="institution-card" onclick="openModal(${item.id})">
+                    <h3>${item.name || 'Без назви'}</h3>
+                    ${item.short_name ? `<div class="type">${item.short_name}</div>` : ''}
+                    <div class="type">${item.type || 'Невідомо'}</div>
+                    ${item.city || item.region ? `<div class="location">📍 ${[item.city, item.region].filter(Boolean).join(', ')}</div>` : ''}
+                    ${item.rating ? `<div class="rating">⭐ ${item.rating} балів</div>` : ''}
+                    ${item.website ? `<div class="website">🌐 ${item.website}</div>` : ''}
+                </div>
+            `).join('');
+        }
+        
+        // Пагинация
+        function renderPagination() {
+            const container = document.getElementById('pagination');
+            const totalPages = Math.ceil(totalItems / limit);
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            const maxVisible = 10;
+            const start = Math.max(0, Math.min(currentPage - 5, totalPages - maxVisible));
+            const end = Math.min(totalPages, start + maxVisible);
+            
+            if (start > 0) {
+                html += `<button onclick="search(0)">1</button>`;
+                if (start > 1) html += `<button disabled>...</button>`;
+            }
+            
+            for (let i = start; i < end; i++) {
+                html += `<button class="${i === currentPage ? 'active' : ''}" onclick="search(${i})">${i + 1}</button>`;
+            }
+            
+            if (end < totalPages) {
+                if (end < totalPages - 1) html += `<button disabled>...</button>`;
+                html += `<button onclick="search(${totalPages - 1})">${totalPages}</button>`;
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        // Модальное окно
+        async function openModal(id) {
+            const overlay = document.getElementById('modalOverlay');
+            const content = document.getElementById('modalContent');
+            
+            overlay.classList.add('active');
+            content.innerHTML = '<div class="loading">Завантаження...</div>';
+            
+            try {
+                // Детальная информация
+                const res = await fetch(`${API_BASE}/api/institutions/${id}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                
+                // Специальности
+                const specRes = await fetch(`${API_BASE}/api/institutions/${id}/specialties`);
+                const specialties = await specRes.json();
+                
+                let specialtiesHtml = '';
+                if (specialties && specialties.length > 0) {
+                    specialtiesHtml = `
+                        <h3 style="margin-top: 20px;">Освітні програми (${specialties.length})</h3>
+                        <table class="specialties-table">
+                            <thead>
+                                <tr>
+                                    <th>Спеціальність</th>
+                                    <th>Код</th>
+                                    <th>Рівень</th>
+                                    <th>Студентів</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${specialties.slice(0, 20).map(s => `
+                                    <tr>
+                                        <td>${s.specialty_name || ''}</td>
+                                        <td>${s.specialty_code || ''}</td>
+                                        <td>${s.education_level || ''}</td>
+                                        <td>${s.students_count || 0}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        ${specialties.length > 20 ? `<p style="color:#888;font-size:13px;">... ще ${specialties.length - 20} програм</p>` : ''}
+                    `;
+                }
+                
+                content.innerHTML = `
+                    <h2>${data.name || 'Без назви'}</h2>
+                    ${data.short_name ? `<p style="color:#666;">${data.short_name}</p>` : ''}
+                    
+                    <div class="info-grid">
+                        <div><span class="label">Тип</span><br><span class="value">${data.type || '—'}</span></div>
+                        <div><span class="label">Форма власності</span><br><span class="value">${data.ownership || '—'}</span></div>
+                        <div><span class="label">Місто</span><br><span class="value">${data.city || '—'}</span></div>
+                        <div><span class="label">Регіон</span><br><span class="value">${data.region || '—'}</span></div>
+                        <div><span class="label">Адреса</span><br><span class="value">${data.address || '—'}</span></div>
+                        <div><span class="label">Рік заснування</span><br><span class="value">${data.founded_year || '—'}</span></div>
+                        <div><span class="label">Код ЄДЕБО</span><br><span class="value">${data.edbo_code || '—'}</span></div>
+                        <div><span class="label">Рейтинг</span><br><span class="value">${data.rating_total ? `⭐ ${data.rating_total} балів` : '—'}</span></div>
+                        ${data.rating_city_position ? `<div><span class="label">Позиція в місті</span><br><span class="value">${data.rating_city_position}</span></div>` : ''}
+                        ${data.rating_general_position ? `<div><span class="label">Загальна позиція</span><br><span class="value">${data.rating_general_position}</span></div>` : ''}
+                        ${data.website ? `<div style="grid-column: 1/-1;"><span class="label">Веб-сайт</span><br><span class="value"><a href="${data.website}" target="_blank">${data.website}</a></span></div>` : ''}
+                    </div>
+                    
+                    ${specialtiesHtml}
+                `;
+            } catch (e) {
+                content.innerHTML = `<div class="loading">❌ Помилка: ${e.message}</div>`;
+                console.error('Modal error:', e);
+            }
+        }
+        
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+        
+        // Закрытие по клику вне модалки
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+        
+        // Закрытие по ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+        
+        // Инициализация
+        loadFilters();
+        search();
+    </script>
+</body>
+</html>
