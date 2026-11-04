@@ -165,10 +165,10 @@ def lead_comment(stmt: str):
     return " | ".join(x for x in out if x and not set(x) <= set("=-"))
 
 
-def print_table(cols, rows, max_rows):
+def print_table(cols, rows, max_rows, max_width=42):
     shown = rows[:max_rows]
     cells = [[("NULL" if v is None else str(v)) for v in r] for r in shown]
-    widths = [min(max([len(str(c))] + [len(r[i]) for r in cells]), 42) for i, c in enumerate(cols)]
+    widths = [min(max([len(str(c))] + [len(r[i]) for r in cells]), max_width) for i, c in enumerate(cols)]
     line = " | ".join(str(c).ljust(widths[i])[:widths[i]] for i, c in enumerate(cols))
     print("      " + line)
     print("      " + "-+-".join("-" * w for w in widths))

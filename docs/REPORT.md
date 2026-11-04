@@ -114,6 +114,8 @@ cp .env.example .env            # вкажіть доступ до PostgreSQL
 python db/run_sql.py --quiet    # встановити/оновити ВСЕ (скрипти ідемпотентні, можна запускати повторно)
 python db/run_sql.py 99 --quiet # (лише якщо БД порожня) тестові дані
 python db/run_sql.py 05         # показати будь-яку тему з результатами: номер файлу
+python db/lab.py list           # перелік лабораторних робіт №4–18
+python db/lab.py 9              # показати лабораторну: запит + пояснення + результат
 cd web && uvicorn app:app --reload      # API + Swagger на http://localhost:8000/docs
 ```
 
@@ -130,12 +132,39 @@ cd web && uvicorn app:app --reload      # API + Swagger на http://localhost:80
 6. **Події:** термінал 1 `python db/events.py listen`, термінал 2 — додайте відгук у Swagger → з'явиться подія.
 7. **Транзакції:** `python db/demo_transactions.py` (rollback, non-repeatable read, lock, deadlock).
 
+## 5а. Лабораторні роботи №4–18
+
+Кожна ЛР — окремий скрипт `db/labs/labNN_*.sql`, що демонструє команди саме цієї роботи на даних проєкту.
+Робочі дані не змінюються (BEGIN … ROLLBACK, TEMP-таблиці); навмисні помилки позначено «очікувана помилка».
+
+| ЛР | Скрипт | ЛР | Скрипт |
+|---|---|---|---|
+| 4 | `lab04_er_to_relational.sql` | 12 | `lab12_dml_by_select.sql` |
+| 5 | `lab05_normalization.sql` | 13 | `lab13_views.sql` |
+| 6 | `lab06_dbms_overview.sql` | 14 | `lab14_indexes.sql` |
+| 7 | `lab07_ddl_constraints.sql` | 15 | `lab15_date_functions.sql` |
+| 8 | `lab08_dml.sql` | 16 | `lab16_numeric_functions.sql` |
+| 9 | `lab09_select_single.sql` | 17 | `lab17_string_functions.sql` |
+| 10 | `lab10_joins_union.sql` | 18 | `lab18_flow_control.sql` |
+| 11 | `lab11_subqueries.sql` | | |
+
+```bash
+python db/lab.py 7          # одна лабораторна
+python db/lab.py 9 -r 20    # більше рядків результату
+python db/lab.py all        # усі — перевірка перед захистом
+python db/lab.py 14 --brief # без тексту SQL, лише пояснення і результати
+```
+
+ЛР №3 (специфікації обмежень) — документальна: див. розділи 2.4, 2.5, 3.11, 3.12 пояснювальної записки.
+Детально — розділ 5.7 пояснювальної записки.
+
 ## 6. Що змінено відносно початкового проєкту
 
 * `parser/*` — **без змін** (працюють через тригери).
 * `web/app.py` — пошук тепер викликає `fn_search_institutions`; нові ендпоінти: відгуки, рейтинг та його історія,
   статистика, аудит, адмін-інформація; помилки БД (`RAISE EXCEPTION`) перетворюються на HTTP 404/409/400.
-* Нове: `db/` (SQL-скрипти, `run_sql.py`, `events.py`, `backup.py`, `demo_transactions.py`).
+* Нове: `db/` (SQL-скрипти, `run_sql.py`, `events.py`, `backup.py`, `demo_transactions.py`),
+  `db/labs/` + `db/lab.py` — скрипти лабораторних робіт №4–18.
 
 ## 7. Відомі особливості
 
