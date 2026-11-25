@@ -114,7 +114,7 @@ cp .env.example .env            # вкажіть доступ до PostgreSQL
 python db/run_sql.py --quiet    # встановити/оновити ВСЕ (скрипти ідемпотентні, можна запускати повторно)
 python db/run_sql.py 99 --quiet # (лише якщо БД порожня) тестові дані
 python db/run_sql.py 05         # показати будь-яку тему з результатами: номер файлу
-python db/lab.py list           # перелік лабораторних робіт №4–18
+python db/lab.py list           # перелік лабораторних робіт №4–24
 python db/lab.py 9              # показати лабораторну: запит + пояснення + результат
 cd web && uvicorn app:app --reload      # API + Swagger на http://localhost:8000/docs
 ```
@@ -132,7 +132,7 @@ cd web && uvicorn app:app --reload      # API + Swagger на http://localhost:80
 6. **Події:** термінал 1 `python db/events.py listen`, термінал 2 — додайте відгук у Swagger → з'явиться подія.
 7. **Транзакції:** `python db/demo_transactions.py` (rollback, non-repeatable read, lock, deadlock).
 
-## 5а. Лабораторні роботи №4–18
+## 5а. Лабораторні роботи №4–18, 20–24
 
 Кожна ЛР — окремий скрипт `db/labs/labNN_*.sql`, що демонструє команди саме цієї роботи на даних проєкту.
 Робочі дані не змінюються (BEGIN … ROLLBACK, TEMP-таблиці); навмисні помилки позначено «очікувана помилка».
@@ -146,7 +146,9 @@ cd web && uvicorn app:app --reload      # API + Swagger на http://localhost:80
 | 8 | `lab08_dml.sql` | 16 | `lab16_numeric_functions.sql` |
 | 9 | `lab09_select_single.sql` | 17 | `lab17_string_functions.sql` |
 | 10 | `lab10_joins_union.sql` | 18 | `lab18_flow_control.sql` |
-| 11 | `lab11_subqueries.sql` | | |
+| 11 | `lab11_subqueries.sql` | 20 | `lab20_cursors.sql` |
+| 21 | `lab21_triggers.sql` | 22 | `lab22_server_config.sql` |
+| 23 | `lab23_users_privileges.sql` | 24 | `lab24_backup.sh` (bash: pg_dump / pg_restore) |
 
 ```bash
 python db/lab.py 7          # одна лабораторна
@@ -167,7 +169,7 @@ python db/lab.py 14 --brief # без тексту SQL, лише поясненн
 * `web/app.py` — пошук тепер викликає `fn_search_institutions`; нові ендпоінти: відгуки, рейтинг та його історія,
   статистика, аудит, адмін-інформація; помилки БД (`RAISE EXCEPTION`) перетворюються на HTTP 404/409/400.
 * Нове: `db/` (SQL-скрипти, `run_sql.py`, `events.py`, `backup.py`, `demo_transactions.py`),
-  `db/labs/` + `db/lab.py` — скрипти лабораторних робіт №4–18.
+  `db/labs/` + `db/lab.py` — скрипти лабораторних робіт №4–24.
 
 ## 7. Відомі особливості
 

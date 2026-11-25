@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Демонстрація лабораторних робіт: кожна ЛР — окремий скрипт db/labs/labNN_*.sql.
+Демонстрація лабораторних робіт: кожна ЛР — окремий скрипт db/labs/labNN_*.sql
+(ЛР №24 — bash-скрипт labNN_*.sh з утилітами pg_dump / pg_restore).
 
 Приклади:
     python db/lab.py list            # перелік лабораторних і їх тем
@@ -21,6 +22,7 @@ import argparse
 import glob
 import os
 import re
+import subprocess
 import sys
 
 import psycopg2.extensions as ext
@@ -33,9 +35,9 @@ EXPECTED_ERROR = "очікувана помилка"
 
 
 def lab_files():
-    """{номер ЛР: шлях} для файлів labNN_*.sql."""
+    """{номер ЛР: шлях} для файлів labNN_*.sql і labNN_*.sh."""
     found = {}
-    for path in sorted(glob.glob(os.path.join(LABS, "lab*.sql"))):
+    for path in sorted(glob.glob(os.path.join(LABS, "lab*.sql")) + glob.glob(os.path.join(LABS, "lab*.sh"))):
         m = re.match(r"lab(\d+)_", os.path.basename(path))
         if m:
             found[int(m.group(1))] = path
@@ -43,11 +45,11 @@ def lab_files():
 
 
 def lab_title(path):
-    """Перший рядок шапки «-- ЛР №N. Тема»."""
+    """Перший рядок шапки «-- ЛР №N. Тема» (у bash-скрипті — «# ЛР №N. Тема»)."""
     with open(path, encoding="utf-8") as f:
         for line in f:
-            if line.startswith("-- ЛР"):
-                return line[2:].strip()
+            if line.startswith(("-- ЛР", "# ЛР")):
+                return line.lstrip("-# ").strip()
     return os.path.basename(path)
 
 
@@ -69,7 +71,59 @@ def parse_statement(stmt):
     return sections, " ".join(title), "\n".join(body).strip()
 
 
+def split_shell(path):
+    """Bash-скрипт ЛР: (пролог, [(розділи, заголовок, команди), ...]).
+    Блоки відокремлено порожніми рядками; усе до першого розділу «# == … ==» — пролог
+    (змінні підключення), який виконується перед кожним блоком."""
+    with open(path, encoding="utf-8") as f:
+        blocks = [b for b in f.read().split("\n\n") if b.strip()]
+    prologue, steps = [], []
+    for block in blocks:
+        sections, title, body = [], [], []
+        for line in block.splitlines():
+            s = line.strip()
+            if not body and s.startswith("#"):
+                text = s.lstrip("#").strip()
+                if text and set(text) <= set("=-"):
+                    title = []              # рядок-роздільник закриває шапку файлу
+                elif text.startswith("=="):
+                    sections.append(text.strip("= "))
+                elif text and not s.startswith("#!"):
+                    title.append(text)
+            elif s or body:
+                body.append(line.rstrip())
+        if not steps and not sections:
+            prologue.append("\n".join(body))
+        else:
+            steps.append((sections, " ".join(title), "\n".join(body).strip()))
+    return "\n".join(prologue), steps
+
+
+def run_shell_lab(path, brief):
+    prologue, steps = split_shell(path)
+    print(f"\n{'#' * 78}\n# {lab_title(path)}\n# файл: db/labs/{os.path.basename(path)}\n{'#' * 78}")
+    unexpected = 0
+    for idx, (sections, title, cmds) in enumerate(steps, 1):
+        for sec in sections:
+            print(f"\n{'=' * 78}\n  {sec}\n{'=' * 78}")
+        print(f"\n[{idx}] {title}" if title else f"\n[{idx}]")
+        if not brief:
+            for line in cmds.splitlines():
+                print(f"    $ {line}")
+        env = dict(os.environ, LAB_ROOT=os.path.dirname(HERE))
+        res = subprocess.run(["bash", "-c", f"{prologue}\n{cmds}"], capture_output=True, text=True, env=env)
+        for line in (res.stdout + res.stderr).strip().splitlines():
+            print(f"      {line}")
+        if res.returncode != 0:
+            unexpected += 1
+            print(f"    !! ПОМИЛКА: код завершення {res.returncode}")
+    print(f"\n--- {os.path.basename(path)}: кроків {len(steps)}, неочікуваних помилок: {unexpected}")
+    return unexpected
+
+
 def run_lab(conn, path, max_rows, brief):
+    if path.endswith(".sh"):
+        return run_shell_lab(path, brief)
     with open(path, encoding="utf-8") as f:
         statements = split_sql(f.read())
     print(f"\n{'#' * 78}\n# {lab_title(path)}\n# файл: db/labs/{os.path.basename(path)}\n{'#' * 78}")
